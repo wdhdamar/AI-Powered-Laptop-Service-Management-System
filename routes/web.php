@@ -12,12 +12,12 @@ Route::get('/', function () {
 
 // Fitur Konsultasi AI & Booking
 Route::get('/konsultasi', [AiController::class, 'index']);
-Route::post('/kirim-aduan', [AiController::class, 'store']);
-Route::post('/konfirmasi-booking/{id}', [AiController::class, 'konfirmasiBooking']);
+Route::post('/kirim-aduan', [AiController::class, 'store'])->middleware('throttle:10,1');
+Route::post('/konfirmasi-booking/{id}', [AiController::class, 'konfirmasiBooking'])->middleware('throttle:10,1');
 
 // Fitur Tracking Antrean Pelanggan
 Route::get('/cek-status', [AiController::class, 'halamanCekStatus']);
-Route::post('/cek-status', [AiController::class, 'prosesCekStatus']);
+Route::post('/cek-status', [AiController::class, 'prosesCekStatus'])->middleware('throttle:10,1');
 
 // Ganti Alur Autentikasi Teknisi
 Route::get('/admin/login', [AiController::class, 'showLoginForm'])->name('login');
