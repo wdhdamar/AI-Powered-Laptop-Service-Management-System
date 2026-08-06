@@ -43,15 +43,15 @@ class TicketService
                 return $ticket;
             }
 
-            // Belt-and-suspenders: lockForUpdate() in generateBookingCode() should
-            // prevent collisions, but in case a residual race still produces a
-            // duplicate, retry a few times against the DB-level unique constraint
-            // instead of letting the QueryException bubble up as a 500. Each attempt
-            // runs in its own nested transaction (Laravel emits a SAVEPOINT here since
-            // we're already inside the outer transaction) so a failed attempt only
-            // rolls back to the savepoint instead of poisoning the whole transaction
-            // — required for Postgres, which aborts the entire transaction after any
-            // failed statement.
+            // generateBookingCode() now produces a random code (not a sequential one)
+            // so it can't be enumerated by customers — collisions are astronomically
+            // unlikely but not impossible, so this retries a few times against the
+            // DB-level unique constraint instead of letting the QueryException bubble
+            // up as a 500. Each attempt runs in its own nested transaction (Laravel
+            // emits a SAVEPOINT here since we're already inside the outer transaction)
+            // so a failed attempt only rolls back to the savepoint instead of poisoning
+            // the whole transaction — required for Postgres, which aborts the entire
+            // transaction after any failed statement.
             $attempts = 0;
             while (true) {
                 try {

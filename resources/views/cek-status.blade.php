@@ -117,7 +117,7 @@
                         <input
                             type="text" name="kode_booking" id="kode_booking"
                             class="form-control mono @error('kode_booking') is-invalid @enderror"
-                            placeholder="SRV-2026-0001"
+                            placeholder="SRV-2026-7XQPKM"
                             value="{{ old('kode_booking', $kodeBooking ?? '') }}"
                             required
                             autocomplete="off"
@@ -133,7 +133,7 @@
                     @error('kode_booking')
                         <p class="form-error">{{ $message }}</p>
                     @else
-                        <p id="kode-hint" class="form-hint">Format: SRV-TAHUN-NOMOR (contoh: SRV-2026-0001)</p>
+                        <p id="kode-hint" class="form-hint">Format: SRV-TAHUN-KODE (contoh: SRV-2026-7XQPKM)</p>
                     @enderror
                 </form>
 

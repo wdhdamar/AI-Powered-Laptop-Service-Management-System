@@ -32,25 +32,24 @@ class Ticket extends Model
         ];
     }
 
+    // Excludes visually-confusable characters (0/O, 1/I/L, U/V) so codes typed by
+    // customers off a screen/receipt are less error-prone.
+    private const CODE_CHARSET = '23456789ABCDEFGHJKMNPQRSTWXYZ';
+
     public static function generateBookingCode(): string
     {
         $tahun = date('Y');
 
-        // lockForUpdate() only has an effect inside a DB transaction (as confirmBooking()
-        // wraps this in). It serializes concurrent callers so two near-simultaneous
-        // confirmations can't compute the same "next" number.
-        $bookingTerakhir = static::where('kode_booking', 'LIKE', "SRV-{$tahun}-%")
-            ->orderBy('kode_booking', 'desc')
-            ->lockForUpdate()
-            ->first();
-
-        if ($bookingTerakhir) {
-            $nomorTerakhir = (int) substr($bookingTerakhir->kode_booking, -4);
-            $nomorUrut = str_pad($nomorTerakhir + 1, 4, '0', STR_PAD_LEFT);
-        } else {
-            $nomorUrut = '0001';
+        // A random (rather than sequential) suffix keeps the public booking code from
+        // being enumerable — customers can no longer guess other tickets by
+        // incrementing the last digits. Collisions are astronomically unlikely
+        // (~29^6 combinations per year) and, if one ever happens, are caught by the
+        // DB-level unique constraint + retry loop in TicketService::confirmBooking().
+        $random = '';
+        for ($i = 0; $i < 6; $i++) {
+            $random .= self::CODE_CHARSET[random_int(0, strlen(self::CODE_CHARSET) - 1)];
         }
 
-        return "SRV-{$tahun}-{$nomorUrut}";
+        return "SRV-{$tahun}-{$random}";
     }
 }

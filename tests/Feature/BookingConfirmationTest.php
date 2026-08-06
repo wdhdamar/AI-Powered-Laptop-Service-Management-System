@@ -31,7 +31,7 @@ class BookingConfirmationTest extends TestCase
 
         $ticket->refresh();
         $this->assertSame(Ticket::STATUS_ANTREAN, $ticket->status);
-        $this->assertMatchesRegularExpression('/^SRV-\d{4}-\d{4}$/', $ticket->kode_booking);
+        $this->assertMatchesRegularExpression('/^SRV-\d{4}-[A-Z0-9]{6}$/', $ticket->kode_booking);
 
         Mail::assertQueued(BookingSuksesMail::class, fn ($mail) => $mail->ticket->id === $ticket->id);
     }

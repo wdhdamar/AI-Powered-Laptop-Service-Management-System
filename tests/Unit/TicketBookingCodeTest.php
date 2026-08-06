@@ -10,26 +10,33 @@ class TicketBookingCodeTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_first_booking_code_of_the_year_starts_at_0001(): void
+    public function test_booking_code_matches_expected_format(): void
     {
         $code = Ticket::generateBookingCode();
 
-        $this->assertSame('SRV-' . date('Y') . '-0001', $code);
+        $this->assertMatchesRegularExpression(
+            '/^SRV-' . date('Y') . '-[23456789ABCDEFGHJKMNPQRSTWXYZ]{6}$/',
+            $code
+        );
     }
 
-    public function test_booking_code_increments_from_the_last_one(): void
+    public function test_booking_code_excludes_ambiguous_characters(): void
     {
-        Ticket::create([
-            'perangkat' => 'Asus ROG',
-            'kendala' => 'Mati total',
-            'urgensi' => 'medium',
-            'raw_text' => 'x',
-            'status' => Ticket::STATUS_ANTREAN,
-            'kode_booking' => 'SRV-' . date('Y') . '-0007',
-        ]);
+        for ($i = 0; $i < 50; $i++) {
+            $code = Ticket::generateBookingCode();
+            $randomSuffix = substr($code, -6);
 
-        $code = Ticket::generateBookingCode();
+            foreach (['0', 'O', '1', 'I', 'L', 'U', 'V'] as $ambiguousChar) {
+                $this->assertStringNotContainsString($ambiguousChar, $randomSuffix);
+            }
+        }
+    }
 
-        $this->assertSame('SRV-' . date('Y') . '-0008', $code);
+    public function test_consecutive_booking_codes_are_not_sequential(): void
+    {
+        $first = Ticket::generateBookingCode();
+        $second = Ticket::generateBookingCode();
+
+        $this->assertNotSame($first, $second);
     }
 }

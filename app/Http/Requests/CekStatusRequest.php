@@ -11,10 +11,26 @@ class CekStatusRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('kode_booking')) {
+            $this->merge([
+                'kode_booking' => strtoupper(trim((string) $this->input('kode_booking'))),
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [
-            'kode_booking' => ['required', 'string'],
+            'kode_booking' => ['required', 'string', 'regex:/^SRV-\d{4}-[A-Z0-9]{6}$/'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'kode_booking.regex' => 'Format kode booking tidak valid. Contoh: SRV-2026-7XQPKM',
         ];
     }
 }
