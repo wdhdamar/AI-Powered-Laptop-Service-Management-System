@@ -36,8 +36,12 @@ class Ticket extends Model
     {
         $tahun = date('Y');
 
+        // lockForUpdate() only has an effect inside a DB transaction (as confirmBooking()
+        // wraps this in). It serializes concurrent callers so two near-simultaneous
+        // confirmations can't compute the same "next" number.
         $bookingTerakhir = static::where('kode_booking', 'LIKE', "SRV-{$tahun}-%")
             ->orderBy('kode_booking', 'desc')
+            ->lockForUpdate()
             ->first();
 
         if ($bookingTerakhir) {

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Mail\BookingSuksesMail;
 use App\Mail\ServisSelesaiMail;
 use App\Models\Ticket;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
@@ -34,10 +35,40 @@ class TicketService
     {
         return DB::transaction(function () use ($id) {
             $ticket = Ticket::findOrFail($id);
-            $ticket->update([
-                'status' => Ticket::STATUS_ANTREAN,
-                'kode_booking' => Ticket::generateBookingCode(),
-            ]);
+
+            // Idempotency guard: a double-click, back-button resubmit, or a retried
+            // request should not regenerate the booking code for an already-confirmed
+            // ticket — that would orphan the code the customer already saw/saved.
+            if ($ticket->status !== Ticket::STATUS_KONSULTASI) {
+                return $ticket;
+            }
+
+            // Belt-and-suspenders: lockForUpdate() in generateBookingCode() should
+            // prevent collisions, but in case a residual race still produces a
+            // duplicate, retry a few times against the DB-level unique constraint
+            // instead of letting the QueryException bubble up as a 500. Each attempt
+            // runs in its own nested transaction (Laravel emits a SAVEPOINT here since
+            // we're already inside the outer transaction) so a failed attempt only
+            // rolls back to the savepoint instead of poisoning the whole transaction
+            // — required for Postgres, which aborts the entire transaction after any
+            // failed statement.
+            $attempts = 0;
+            while (true) {
+                try {
+                    DB::transaction(function () use ($ticket) {
+                        $ticket->update([
+                            'status' => Ticket::STATUS_ANTREAN,
+                            'kode_booking' => Ticket::generateBookingCode(),
+                        ]);
+                    });
+                    break;
+                } catch (QueryException $e) {
+                    $attempts++;
+                    if ($attempts >= 3 || !$this->isUniqueViolation($e)) {
+                        throw $e;
+                    }
+                }
+            }
 
             if ($ticket->email) {
                 Mail::to($ticket->email)->send(new BookingSuksesMail($ticket));
@@ -45,6 +76,12 @@ class TicketService
 
             return $ticket;
         });
+    }
+
+    private function isUniqueViolation(QueryException $e): bool
+    {
+        // Postgres unique_violation SQLSTATE is 23505.
+        return $e->getCode() === '23505';
     }
 
     public function updateStatus(int $id, string $status, ?int $biayaFinal = null): Ticket

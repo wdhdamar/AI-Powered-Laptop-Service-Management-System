@@ -49,4 +49,20 @@ class SubmitComplaintTest extends TestCase
         $response->assertSessionHasErrors(['email', 'aduan']);
         $this->assertDatabaseCount('tickets', 0);
     }
+
+    public function test_ai_service_connection_failure_shows_friendly_error(): void
+    {
+        Http::fake([
+            'api.groq.com/*' => fn () => throw new \Illuminate\Http\Client\ConnectionException('Connection timed out'),
+        ]);
+
+        $response = $this->from('/konsultasi')->post('/kirim-aduan', [
+            'email' => 'customer@example.com',
+            'aduan' => 'Laptop saya mati total setelah kena air.',
+        ]);
+
+        $response->assertRedirect('/konsultasi');
+        $response->assertSessionHas('error');
+        $this->assertDatabaseCount('tickets', 0);
+    }
 }
