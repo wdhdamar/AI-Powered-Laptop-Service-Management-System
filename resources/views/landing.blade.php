@@ -14,6 +14,7 @@
         background: var(--slate-50);
     }
     .nav-link:hover { border-color: var(--slate-300); background: var(--slate-100); color: var(--slate-700); }
+    .nav-link.active { border-color: var(--brand); color: var(--brand); background: var(--brand-light); }
 
     /* ── HERO ── */
     .hero { background: var(--slate-900); padding: 96px 0 104px; }
@@ -100,10 +101,6 @@
     }
 </style>
 @endpush
-
-@section('nav-links')
-    <a href="/admin" class="nav-link">Portal Teknisi</a>
-@endsection
 
 @section('content')
 

@@ -71,7 +71,16 @@
             transition: color .15s, background .15s;
         }
         .nav-link:hover { color: var(--slate-900); background: var(--slate-100); }
+        .nav-link.active { color: var(--slate-900); background: var(--slate-100); font-weight: 600; }
         .nav-divider { width: 1px; height: 20px; background: var(--slate-200); margin: 0 4px; }
+
+        /* ── FLOW ESCAPE HATCH ── */
+        .back-home-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 13px; color: var(--slate-400);
+            margin-bottom: 16px; transition: color .15s;
+        }
+        .back-home-link:hover { color: var(--slate-600); }
 
         /* ── PAGE WRAPPER ── */
         .page-main { padding: 48px 0 80px; flex: 1; }
@@ -148,7 +157,9 @@
         <div class="nav-inner">
             <a href="/" class="nav-logo">Mars<span class="accent">Top</span></a>
             <div class="nav-links">
-                @yield('nav-links')
+                <a href="/konsultasi" class="nav-link {{ request()->is('konsultasi') ? 'active' : '' }}">Konsultasi AI</a>
+                <div class="nav-divider" aria-hidden="true"></div>
+                <a href="/cek-status" class="nav-link {{ request()->is('cek-status') ? 'active' : '' }}">Lacak Servis</a>
             </div>
         </div>
     </div>

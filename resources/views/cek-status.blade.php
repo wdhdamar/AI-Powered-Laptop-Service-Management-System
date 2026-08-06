@@ -93,15 +93,14 @@
 </style>
 @endpush
 
-@section('nav-links')
-    <a href="/konsultasi" class="nav-link">Konsultasi AI</a>
-    <div class="nav-divider" aria-hidden="true"></div>
-    <a href="/admin" class="nav-link">Portal Teknisi</a>
-@endsection
-
 @section('content')
 <main class="page-main">
     <div class="container narrow">
+
+        <a href="/" class="back-home-link">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 3L4 7l4.5 4"/></svg>
+            Kembali ke Beranda
+        </a>
 
         <div class="page-head">
             <h1>Lacak Status Servis</h1>
